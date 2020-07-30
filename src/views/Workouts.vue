@@ -1,5 +1,10 @@
 <template>
-    $END$
+    <div class="workouts">
+        WORKOUTS:
+        <router-link to="/add-workout">
+            Add Workout
+        </router-link>
+    </div>
 </template>
 
 <script>
