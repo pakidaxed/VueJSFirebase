@@ -1,39 +1,39 @@
 <template>
     <div class="settings">
         <h1>SETTINGS:</h1>
-        <Notification :display="error" :type="type" :message="errorMessage"/>
+        <Notification v-on:closeNotification="error = false" v-if="error" :type="type" :message="errorMessage"/>
         <form @submit.prevent="changeName">
             <div class="field-body">
                 <div class="field">
                     <label class="label" id="label-name">Your name</label>
                     <div class="control">
-                        <input class="input" v-model="userName" type="text" :placeholder="user.name"/>
+                        <input class="input" v-model="user.name" type="text" :placeholder="user.name"/>
                     </div>
                 </div>
                 <div class="field">
                     <label class="label" id="age-name">Your age</label>
                     <div class="control">
-                        <input class="input" v-model="userAge" type="number" :placeholder="user.age"/>
+                        <input class="input" v-model="user.age" type="number" :placeholder="user.age"/>
                     </div>
                 </div>
             </div>
 
             <div class="control">
                 <label class="radio">
-                    <input type="radio" name="gender" v-model="userGender" value="Male">
+                    <input type="radio" name="gender" v-model="user.gender" value="male">
                     Male
                 </label>
                 <label class="radio">
-                    <input type="radio" name="gender" v-model="userGender" value="Female">
+                    <input type="radio" name="gender" v-model="user.gender" value="female">
                     Female
                 </label>
                 <label class="radio">
-                    <input type="radio" name="gender" v-model="userGender" value="Other">
+                    <input type="radio" name="gender" v-model="user.gender" value="other">
                     Other
                 </label>
             </div>
             <div class="control">
-                <button class="button is-primary" @click="changeName">Change name</button>
+                <button class="button is-primary" :class="loading && 'is-loading'" @click="changeName">Change name</button>
             </div>
         </form>
     </div>
@@ -50,47 +50,45 @@
         components: {Notification},
         data() {
             return {
-                user: [],
-                userName: "",
-                userAge: "",
-                userGender: "",
+                user: {},
                 type: "",
                 error: false,
-                errorMessage: ""
+                errorMessage: "",
+                loading: false
             }
         },
         methods: {
             changeName() {
+                this.loading = true
                 firebase
                     .firestore()
                     .collection("users")
                     .doc(firebase.auth().currentUser.uid)
-                    .update({
-                        age: this.userAge,
-                        name: this.userName,
-                        gender: this.userGender
+                    .set({
+                        age: this.user.age,
+                        name: this.user.name,
+                        gender: this.user.gender
                     })
-
                     .then(() => {
                         this.type = "is-primary"
                         this.error = true
-                        this.errorMessage = `Jusu vardas sekmingai pakeistas i ${this.userName}, amzius ${this.userAge}, lytis ${this.userGender}.`
+                        this.errorMessage = `Jusu vardas sekmingai pakeistas i ${this.user.name}, amzius ${this.user.age}, lytis ${this.user.gender}.`
+                        this.loading = false
                     }, error => {
                         this.type = "is-danger"
                         this.error = true
                         this.errorMessage = error.message
+                        this.loading = false
                     })
-
-
             }
-
         },
         beforeMount() {
             firebase
                 .firestore()
-                .collection("users").doc(firebase.auth().currentUser.uid)
+                .collection("users")
+                .doc(firebase.auth().currentUser.uid)
                 .get()
-                .then((doc) => this.user = doc.data(),
+                .then((doc) => doc.data() && (this.user = doc.data()),
                     (error) => {
                         this.error = true;
                         this.type = "is-danger";

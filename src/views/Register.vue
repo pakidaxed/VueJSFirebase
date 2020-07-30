@@ -1,6 +1,6 @@
 <template>
     <div class="register">
-        <Notification :display="error" type="is-danger" :message="errorMessage" />
+        <Notification v-on:closeNotification="error = false" v-if="error" type="is-danger" :message="errorMessage" />
         <form v-on:submit.prevent="register">
             <div class="field">
                 <label class="label">Email</label>
